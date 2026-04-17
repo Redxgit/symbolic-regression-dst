@@ -1,0 +1,2 @@
+Equation: g = (neg(#2 * #3) - #1) * ((#3 - -2.297315) / 544.1244); d = square((#1 * 0.015485588) - 1.3748381)
+LaTeX: \mathtt{\text{- \textbackslashleft(0.00183781502906321 Bzsouth + 0.00422204003349234\textbackslashright) \textbackslashleft(Vp - \textbackslashoperatorname\{neg\}\{\textbackslashleft(Bzsouth Np \textbackslashright)\}\textbackslashright) + \textbackslashleft(0.015485588 DST - 1.3748381\textbackslashright)\textasciicircum\{2\} with features ['Vp', 'Np', 'Bzsouth', 'Bmag', 'By', 'DST']}}
