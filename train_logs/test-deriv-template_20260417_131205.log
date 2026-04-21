@@ -1,0 +1,31 @@
+Loading and interpolating data...
+Training on 12672 samples with features: ['P_dyn', 'VBs', 'epsilon', 'DST']
+
+--- Starting Simulation 1/100 ---
+Compiling Julia backend...
+
+--- Starting Simulation 2/100 ---
+
+--- Starting Simulation 3/100 ---
+
+--- Starting Simulation 4/100 ---
+
+--- Starting Simulation 5/100 ---
+
+--- Starting Simulation 6/100 ---
+
+--- Starting Simulation 7/100 ---
+
+--- Starting Simulation 8/100 ---
+
+--- Starting Simulation 9/100 ---
+
+--- Starting Simulation 10/100 ---
+
+--- Starting Simulation 11/100 ---
+
+--- Starting Simulation 12/100 ---
+
+--- Starting Simulation 13/100 ---
+
+--- Starting Simulation 14/100 ---

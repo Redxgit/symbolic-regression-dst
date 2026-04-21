@@ -334,6 +334,7 @@ def main():
         with open(os.path.join(eq_folder, 'equation.txt'), 'w') as f:
             f.write(f'Equation: {model.sympy_format()}\n')            
             f.write(f'LaTeX: {latex(model.latex_str())}\n')
+            f.write(f'Raw: {raw_eq}\n')
 
         print(f"Plotting Top Equation {i+1}: {raw_eq} ...")
         for sd, ed, storm_id in tqdm(test_storms):

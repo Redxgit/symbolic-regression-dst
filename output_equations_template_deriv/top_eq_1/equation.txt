@@ -1,3 +1,4 @@
-Equation: dDST/dt = [-0.0010888062*VBs*sqrt(P_dyn + 1.1051167)
- + (0.018209398*DST - 0.59240085)**2]
-LaTeX: \mathtt{\text{- 0.0010888062 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.1051167 \textbackslashright)\} + \textbackslashleft(0.018209398 DST - 0.59240085\textbackslashright)\textasciicircum\{2\} with features ['P\_dyn', 'VBs', 'epsilon', 'DST']}}
+Equation: dDST/dt = [-0.0010723427*VBs*sqrt(P_dyn + 1.2173425)
+ + (0.018120795*DST - 0.5971914)**2]
+LaTeX: \mathtt{\text{- 0.0010723427 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.2173425 \textbackslashright)\} + \textbackslashleft(0.018120795 DST - 0.5971914\textbackslashright)\textasciicircum\{2\} with features ['P\_dyn', 'VBs', 'epsilon', 'DST']}}
+Raw: g = #2 * (sqrt(#1 - -1.2173425) * -0.0010723427); d = square((#1 * -0.018120795) + 0.5971914)

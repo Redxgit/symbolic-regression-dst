@@ -1,2 +1,0 @@
-Equation: g = #3 * ((#1 - #2) * (-0.0015848768 - (#2 * 0.00010356372))); d = square((#1 * 0.017699083) - 0.660282)
-LaTeX: \mathtt{\text{Bzsouth \textbackslashleft(0.00010356372 Np + 0.0015848768\textbackslashright) \textbackslashleft(Np - Vp\textbackslashright) + \textbackslashleft(0.017699083 DST - 0.660282\textbackslashright)\textasciicircum\{2\} with features ['Vp', 'Np', 'Bzsouth', 'Bmag', 'By', 'DST']}}
