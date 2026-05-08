@@ -1,3 +1,4 @@
-Equation: dDST/dt = [-0.0021015273*(Bzsouth + 1.6439178)*(Bzsouth*(Np - sqrt(Bmag)) + Vp)
- + (0.015890777*DST - 1.2798462)**2]
-LaTeX: \mathtt{\text{- 0.0021015273 \textbackslashleft(Bzsouth + 1.6439178\textbackslashright) \textbackslashleft(Bzsouth \textbackslashleft(Np - \textbackslashsqrt\{\textbackslashleft(\textbackslashleft|\{B\}\textbackslashright| \textbackslashright)\}\textbackslashright) + Vp\textbackslashright) + \textbackslashleft(0.015890777 DST - 1.2798462\textbackslashright)\textasciicircum\{2\} with features ['Vp', 'Np', 'Bzsouth', 'Bmag', 'By', 'DST']}}
+Equation: dDST/dt = [-0.00199224768611389*(Bzsouth + 2.152752)*(Bzsouth*(Np - 4.7333016) + Vp)
+ + (0.015329162*DST - 1.4046433)**2]
+LaTeX: \mathtt{\text{- 0.00199224768611389 \textbackslashleft(Bzsouth + 2.152752\textbackslashright) \textbackslashleft(Bzsouth \textbackslashleft(Np - 4.7333016\textbackslashright) + Vp\textbackslashright) + \textbackslashleft(0.015329162 DST - 1.4046433\textbackslashright)\textasciicircum\{2\} with features ['Vp', 'Np', 'Bzsouth', 'Bmag', 'DST']}}
+Raw: g = (#3 - -2.152752) * ((((4.7333016 - #2) * #3) - #1) / 501.94562); d = square(1.4046433 - (#1 * 0.015329162))

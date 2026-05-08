@@ -155,7 +155,7 @@ class EquationModel:
                 latex(sp.simplify(self.g_equation_sympy))
                 + " + "
                 + latex(sp.simplify(self.d_equation_sympy))
-                + f" with features {self.feature_names}"
+                #+ f" with features {self.feature_names}"
             )
         else:
             return latex(sp.simplify(self.expr))

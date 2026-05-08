@@ -222,6 +222,20 @@ def get_all_metrics(y_true, y_pred):
     bfe = metrics.calculate_BFE(y_true, y_pred)
     return rmse, mae, r2, cc, bfe
 
+def get_all_metrics_dict(y_true, y_pred):
+    rmse = root_mean_squared_error(y_true, y_pred)
+    mae = mean_absolute_error(y_true, y_pred)
+    r2 = r2_score(y_true, y_pred)
+    cc, _ = pearsonr(y_true, y_pred)
+    bfe = metrics.calculate_BFE(y_true, y_pred)
+    return {
+        "RMSE": rmse,
+        "MAE": mae,
+        "R2": r2,
+        "CC": cc,
+        "BFE": bfe
+    }
+
 def plot_evaluation_bfe_multi(ax, obs, preds_list, labels, colors, bin_width=10):
     """Modified BFE plot supporting multiple model lines."""
     min_val = np.floor(obs.min() / bin_width) * bin_width
@@ -251,5 +265,5 @@ def plot_evaluation_bfe_multi(ax, obs, preds_list, labels, colors, bin_width=10)
     twin = ax.twinx()
     twin.hist(obs, bins=bins, alpha=0.15, color="brown")
     twin.set_yscale("log")
-    twin.grid(linestyle="--")
+    twin.grid(False)
     twin.set_ylabel("Bin count")

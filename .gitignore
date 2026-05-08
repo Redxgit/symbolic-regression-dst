@@ -5,6 +5,9 @@ build/
 dist/
 wheels/
 *.egg-info
-
+*.zip
 # Virtual environments
 .venv
+outputs/
+train_logs/
+test_plots*

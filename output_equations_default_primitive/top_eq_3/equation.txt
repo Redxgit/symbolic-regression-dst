@@ -1,3 +1,3 @@
-Equation: dDST/dt = -Bzsouth*(0.0024323284*Bzsouth*Np + 0.00550733965633361*DST + 0.0024323284*Vp) - 0.052771024*DST
-LaTeX: \mathtt{\text{- Bzsouth \textbackslashleft(0.0024323284 Bzsouth Np + 0.00550733965633361 DST + 0.0024323284 Vp\textbackslashright) - 0.052771024 DST}}
-Raw: (DST * -0.052771024) - ((((Vp + (Bzsouth * Np)) + (DST / 0.44165215)) * 0.0024323284) * Bzsouth)
+Equation: dDST/dt = -Bzsouth*(0.0025749283*Bzsouth*Np + 0.00633902208966901*DST + 0.0025749283*Vp) - 0.04895255*DST + 0.04895255*Np
+LaTeX: \mathtt{\text{- Bzsouth \textbackslashleft(0.0025749283 Bzsouth Np + 0.00633902208966901 DST + 0.0025749283 Vp\textbackslashright) - 0.04895255 DST + 0.04895255 Np}}
+Raw: ((DST - Np) * -0.04895255) + (Bzsouth * ((((DST * 2.4618247) + Vp) + (Bzsouth * Np)) * -0.0025749283))

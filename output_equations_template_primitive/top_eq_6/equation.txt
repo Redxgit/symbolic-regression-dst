@@ -1,3 +1,4 @@
-Equation: dDST/dt = [-0.0018150203*(Bzsouth + 2.0452397)*(Bzsouth*Np + Vp)
- + (0.015376654*DST - 1.3081883)**2]
-LaTeX: \mathtt{\text{- 0.0018150203 \textbackslashleft(Bzsouth + 2.0452397\textbackslashright) \textbackslashleft(Bzsouth Np + Vp\textbackslashright) + \textbackslashleft(0.015376654 DST - 1.3081883\textbackslashright)\textasciicircum\{2\} with features ['Vp', 'Np', 'Bzsouth', 'Bmag', 'By', 'DST']}}
+Equation: dDST/dt = [-0.0016007437*Vp*(0.00011782655*Bzsouth*Np*Vp + Bzsouth + 1.3935444)
+ + (0.016486706*DST - 1.0748392)**2]
+LaTeX: \mathtt{\text{- 0.0016007437 Vp \textbackslashleft(0.00011782655 Bzsouth Np Vp + Bzsouth + 1.3935444\textbackslashright) + \textbackslashleft(0.016486706 DST - 1.0748392\textbackslashright)\textasciicircum\{2\} with features ['Vp', 'Np', 'Bzsouth', 'Bmag', 'DST']}}
+Raw: g = ((#2 * ((#1 * #3) * 0.00011782655)) + (#3 + 1.3935444)) * (#1 * -0.0016007437); d = square((#1 * -0.016486706) - -1.0748392)
