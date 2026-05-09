@@ -236,7 +236,7 @@ def get_all_metrics_dict(y_true, y_pred):
         "BFE": bfe
     }
 
-def plot_evaluation_bfe_multi(ax, obs, preds_list, labels, colors, bin_width=10):
+def plot_evaluation_bfe_multi(ax, obs, preds_list, labels, colors, bin_width=10, fontsize=8):
     """Modified BFE plot supporting multiple model lines."""
     min_val = np.floor(obs.min() / bin_width) * bin_width
     max_val = np.ceil(obs.max() / bin_width) * bin_width
@@ -256,14 +256,17 @@ def plot_evaluation_bfe_multi(ax, obs, preds_list, labels, colors, bin_width=10)
         bfe_val = metrics.calculate_BFE(obs, pred)
         title_str += f"{label} BFE: {bfe_val:.2f} | "
 
-    ax.set_ylabel("Mean Abs. Diff (nT)")
-    ax.set_xlabel("Observed DST (nT)")
+    
+    ax.set_ylabel("Mean Abs. Diff (nT)", fontsize=fontsize)
+    ax.set_xlabel("Observed DST (nT)", fontsize=fontsize)
     ax.grid(True, linestyle="--", alpha=0.6)
-    ax.legend(fontsize=8)
-    ax.set_title(title_str)
+    ax.legend(fontsize=fontsize)
+    ax.set_title('BFE Comparison', fontsize=18)
     ax.set_xlim(obs.min() + bin_width, obs.max() - bin_width)
+    ax.tick_params(axis='both', which='major', labelsize=14)
+    ax.tick_params(axis='both', which='minor', labelsize=10)
     twin = ax.twinx()
     twin.hist(obs, bins=bins, alpha=0.15, color="brown")
     twin.set_yscale("log")
     twin.grid(False)
-    twin.set_ylabel("Bin count")
+    twin.set_ylabel("Bin count", fontsize=fontsize)

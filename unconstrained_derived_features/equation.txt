@@ -2,3 +2,9 @@ Equation: (VBs * (sqrt(P_dyn + square((DST * -0.008792949) + -1.9299145)) * -0.0
 LaTeX: \mathtt{\text{- 0.0009785303 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + \textbackslashleft(0.008792949 DST + 1.9299145\textbackslashright)\textasciicircum\{2\} \textbackslashright)\} + \textbackslashleft(0.01791331 DST - 0.60905385\textbackslashright)\textasciicircum\{2\}}}
 Equation: ((VBs * -0.0011102495) * sqrt(P_dyn + 1.0975075)) + (0.00036096844 * square(DST + -29.48951))
 LaTeX: \mathtt{\text{- 0.0011102495 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.0975075 \textbackslashright)\} + 0.00036096844 \textbackslashleft(DST - 29.48951\textbackslashright)\textasciicircum\{2\}}}
+Equation: ((VBs * -0.0011102495) * sqrt(P_dyn + 1.0975075)) + (0.00036096844 * square(DST + -29.48951))
+LaTeX: \mathtt{\text{- 0.0011102495 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.0975075 \textbackslashright)\} + 0.00036096844 \textbackslashleft(DST - 29.48951\textbackslashright)\textasciicircum\{2\}}}
+Equation: ((VBs * -0.0011102495) * sqrt(P_dyn + 1.0975075)) + (0.00036096844 * square(DST + -29.48951))
+LaTeX: \mathtt{\text{- 0.0011102495 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.0975075 \textbackslashright)\} + 0.00036096844 \textbackslashleft(DST - 29.48951\textbackslashright)\textasciicircum\{2\}}}
+Equation: ((VBs * -0.0011102495) * sqrt(P_dyn + 1.0975075)) + (0.00036096844 * square(DST + -29.48951))
+LaTeX: \mathtt{\text{- 0.0011102495 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.0975075 \textbackslashright)\} + 0.00036096844 \textbackslashleft(DST - 29.48951\textbackslashright)\textasciicircum\{2\}}}
