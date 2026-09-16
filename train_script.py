@@ -15,7 +15,7 @@ import pre_processing
 
 
 def setup_pysr_patches():
-    """Patches to avoid SymPy parsing errors during large-scale runs."""
+    """Patches to avoid SymPy parsing errors"""
     spp.parse_expr = lambda code, **kwargs: code
     import pysr.export as export_module
 
@@ -55,6 +55,12 @@ def get_args():
     )
     parser.add_argument("--batch_size", type=int, default=1024)
     parser.add_argument("--maxsize", type=int, default=30)
+    parser.add_argument(
+        "--force_reload",
+        action="store_true",
+        help="Force reloading and preprocessing of data.",
+        default=False
+    )
 
     # Output
     parser.add_argument(
@@ -64,27 +70,39 @@ def get_args():
     return parser.parse_args()
 
 
-def load_and_preprocess():
+def load_and_preprocess(prepared_data = './data/prepared_data.csv', force_reload=False, save_prepared_data=True):
     logging.info("Loading and interpolating data...")
+    
+    if os.path.exists(prepared_data) and not force_reload:
+        logging.info(f"Loading preprocessed data from {prepared_data}")
+        all_data = pd.read_csv(prepared_data, index_col=0, parse_dates=True)
+        return all_data
 
     ace_columns = ['Bmag', 'Bx', 'By', 'Bz','Vp', 'Np', 'T']
 
     dst_kyoto = utils.read_iaga_file('./data/dst-kyoto.txt', columns = ["DATE", "TIME", "DOY", "DST"])
+    dst_kyoto = dst_kyoto[~dst_kyoto.index.duplicated(keep='first')]
 
     ace_imf = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_imf_1h_'], print_info = True, return_separated = False)
     ace_imf.columns = ['Bmag', 'Bx', 'By', 'Bz']
+    ace_imf = ace_imf[~ace_imf.index.duplicated(keep='first')]
+    
     ace_imf_provisional = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_imf_provisional_1h_'], print_info = True, return_separated = False)
     ace_imf_provisional = pre_processing.preprocess_ace_imf_provisional(ace_imf_provisional, resample=False)
     ace_imf_provisional.columns = ['Bmag', 'Bx', 'By', 'Bz']
+    ace_imf_provisional = ace_imf_provisional[~ace_imf_provisional.index.duplicated(keep='first')]
 
     ace_imf = ace_imf.combine_first(ace_imf_provisional)
 
     ace_swepam = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_swepam_1h_'], print_info = True, return_separated = False)                          
     ace_swepam.columns = ['Vx', 'Vy', 'Vz', 'Vp', 'Np', 'T']
     ace_swepam = ace_swepam.loc[:, ('Vp', 'Np', 'T')]
+    ace_swepam = ace_swepam[~ace_swepam.index.duplicated(keep='first')]
+    
     ace_swepam_provisional = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_swepam_provisional_1h_'], print_info = True, return_separated = False)                          
     ace_swepam_provisional = pre_processing.preprocess_ace_swepam_provisional(ace_swepam_provisional, resample=False)
     ace_swepam_provisional.columns = ['Np', 'Vp', 'T']
+    ace_swepam_provisional = ace_swepam_provisional[~ace_swepam_provisional.index.duplicated(keep='first')]
 
     ace_swepam = ace_swepam.combine_first(ace_swepam_provisional)
 
@@ -93,25 +111,86 @@ def load_and_preprocess():
     all_data = ace_data.join(dst_kyoto['DST'])
 
     all_data = all_data.interpolate()
+    
+    if save_prepared_data:
+        logging.info(f"Saving preprocessed data to {prepared_data}")
+        all_data.to_csv(prepared_data)
+    
     return all_data
 
 
 def compute_features(dfx):
-    """Derived feature logic condensed from your deriv scripts."""
+
     df = dfx.copy()
 
-    # Derived variables
-    df["B_T"] = np.sqrt(df["By"] ** 2 + df["Bz"] ** 2)
-    df["clock_angle"] = np.degrees(np.arctan2(df["By"], df["Bz"]))
-    df["sin_th2"] = np.sin(np.radians(df["clock_angle"]) / 2)
-    df["Bzsouth"] = np.maximum(0, -df["Bz"])
-    df["VBs"] = df["Vp"] * df["Bzsouth"]
-    df["P_dyn"] = 1.6726e-6 * df["Np"] * (df["Vp"] ** 2)
-    df["epsilon"] = df["Vp"] * (df["B_T"] ** 2) * (df["sin_th2"] ** 4)
-    df["E_Field"] = -df["Vp"] * df["Bz"] * 1e-3
-    df["VBs_thresh"] = np.maximum(df["VBs"] - 0.5, 0)
-    # Target Derivative
-    df["dDST_dt"] = df["DST"].diff().shift(-1)
+    # Magnetic field magnitude
+    df["B_T"] = np.sqrt(
+        df["By"]**2 +
+        df["Bz"]**2
+    )
+
+    df["B"] = np.sqrt(
+        df["Bx"]**2 +
+        df["By"]**2 +
+        df["Bz"]**2
+    )
+
+    # IMF clock angle
+    df["clock_angle"] = np.degrees(
+        np.arctan2(df["By"], df["Bz"])
+    )
+
+    df["sin_th2"] = np.sin(
+        np.radians(df["clock_angle"]) / 2
+    )
+
+    # Southward IMF
+    df["Bzsouth"] = np.maximum(
+        0,
+        -df["Bz"]
+    )
+
+    # VBs
+    df["VBs"] = (
+        df["Vp"] *
+        df["Bzsouth"]
+    )
+
+    # Electric field in mV/m
+    df["E_Field"] = np.maximum(
+        0,
+        -df["Vp"] * df["Bz"] * 1e-3
+    )
+
+    # Akasofu epsilon
+    df["epsilon"] = (
+        df["Vp"]
+        * df["B"]**2
+        * df["sin_th2"]**4
+    )
+
+    # Dynamic pressure [nPa]
+    df["P_dyn_nPa"] = (
+        1.6726e-6
+        * df["Np"]
+        * df["Vp"]**2
+    )
+
+    # Backward-compatible alias
+    df["P_dyn"] = df["P_dyn_nPa"]
+
+    # Burton pressure convention [eV/cm^3]
+    df["P_dyn_eVcm3"] = (
+        df["P_dyn_nPa"]
+        * 6241.509
+    )
+
+    # Target derivative
+    df["dDST_dt"] = (
+        df["DST"]
+        .diff()
+        .shift(-1)
+    )
 
     return df
 
@@ -135,9 +214,11 @@ def main():
     # Feature selection
     all_cols = args.features.split(",")
     
+    if not all_cols:
+        raise ValueError("No features specified")
 
     # Data pipeline
-    raw_data = load_and_preprocess()
+    raw_data = load_and_preprocess(force_reload=args.force_reload)
     data = compute_features(raw_data)
 
     # Storm extraction (Combine train and validation as per your scripts)
@@ -183,7 +264,10 @@ def main():
             progress=True,
         )
 
-        model.fit(X, y)
+        if args.mode == "template":
+            model.fit(X, y)
+        else:
+            model.fit(X, y, variable_names=all_cols)
 
         # Save results
         eq_df = model.equations_.copy()

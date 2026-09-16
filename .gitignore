@@ -11,3 +11,8 @@ wheels/
 outputs/
 train_logs/
 test_plots*
+comparison_template_deriv_against_baselines_newv/
+output_equations_template_primitive_newv/
+plots/
+repo-dst.zip
+*_test.py

@@ -1,12 +1,3 @@
-# pre_processing.py
-# Deep Neural Networks for Geomagnetic Indices Forecasting
-# European Space Agency Contract No. 4000137421/22/NL/GLC/my
-# WP2000 - Geomagnetic indices data pre-processing toolchain
-# Author: Armando Collado
-# Last update date: 07-12-2022
-# Version: 1.0
-# Module with the main pre_processing functions
-
 from tokenize import group
 import pandas as pd
 import scipy
@@ -14,6 +5,7 @@ import constants
 import numpy as np
 import utils
 from spacepy import coordinates as coord
+from spacepy.time import Ticktock
 
 # Physical constants (SI units)
 m_p = 1.6726e-27    # Proton mass (kg)
@@ -114,17 +106,23 @@ def preprocess_ace_imf_provisional(
     # Replace column values which are outside their range
     for col in df.columns:
         if col in constants.VALID_RANGES_VARS_ACE_IMF.keys():
-            df.loc[df[col] >= constants.VALID_RANGES_VARS_ACE_IMF[col][1], :] = np.nan
-            df.loc[df[col] <= constants.VALID_RANGES_VARS_ACE_IMF[col][0], :] = np.nan
+            df.loc[df[col] >= constants.VALID_RANGES_VARS_ACE_IMF[col][1], col] = np.nan
+            df.loc[df[col] <= constants.VALID_RANGES_VARS_ACE_IMF[col][0], col] = np.nan
 
     if ("BGSEc_X") in df.columns:
-        gse_to_gsm = coord.Coords(
-            df[["BGSEc_X", "BGSEc_Y", "BGSEc_Z"]].values, "GSM", "car", use_irbem=False
+        gse_coords = coord.Coords(
+            df[["BGSEc_X", "BGSEc_Y", "BGSEc_Z"]].values, "GSE", "car", use_irbem=False
         )
-        gse_to_gsm = gse_to_gsm.convert("GSM", "car")
-        df["Bx"] = gse_to_gsm.x
-        df["By"] = gse_to_gsm.y
-        df["Bz"] = gse_to_gsm.z
+        
+        times = Ticktock(df.index.to_pydatetime(), "UTC")
+        
+        gse_coords.ticks = times
+        
+        gsm_coords = gse_coords.convert("GSM", "car")
+        
+        df["Bx"] = gsm_coords.x
+        df["By"] = gsm_coords.y
+        df["Bz"] = gsm_coords.z
 
     for col in df.columns:
         if col in constants.VALID_RANGES_VARS_ACE_IMF.keys():

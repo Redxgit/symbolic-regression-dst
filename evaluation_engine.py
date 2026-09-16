@@ -171,14 +171,26 @@ class EquationModel:
 def simulate_storm(model, storm_df):
     """Reconstructs DST profile using Euler integration."""
     initial_idx = storm_df.index[0]
-    DST_current = storm_df.loc[initial_idx, f"DST"]  # Start with actual DST
+    DST_current = storm_df.loc[initial_idx, "DST"]  # Start with actual DST
+    
     predictions = []
+    
+    # Record initial state prediction (t=0)
+    initial_pred = {
+        "datetime": initial_idx,
+        "DST_pred": DST_current,
+        "dDST": 0.0
+    }
+    
+    # Keep schema consistent for template models at t=0
+    if model.is_template:
+        initial_pred["injection_component"] = 0.0
+        initial_pred["decay_component"] = 0.0
+        
+    predictions.append(initial_pred)
 
-    # We iterate through time
-    for hour in range(len(storm_df)):
-
-        if hour >= len(storm_df):
-            break
+    # Loop from 0 to N-2 safely
+    for hour in range(len(storm_df) - 1):
 
         # Prepare inputs for this specific time step
         input_step = storm_df.iloc[hour].to_dict()
@@ -193,7 +205,7 @@ def simulate_storm(model, storm_df):
 
             predictions.append(
                 {
-                    "datetime": initial_idx + pd.Timedelta(hours=hour + 1),
+                    "datetime": storm_df.index[hour + 1],
                     "DST_pred": DST_pred,
                     "dDST": ddst_dt,
                     "injection_component": injection_component,
@@ -209,7 +221,7 @@ def simulate_storm(model, storm_df):
 
             predictions.append(
                 {
-                    "datetime": initial_idx + pd.Timedelta(hours=hour + 1),
+                    "datetime": storm_df.index[hour + 1],
                     "DST_pred": DST_pred,
                     "dDST": ddst_dt,
                 }

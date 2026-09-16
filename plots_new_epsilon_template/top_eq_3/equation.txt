@@ -1,0 +1,4 @@
+Equation: dDST/dt = [-0.0010751275*VBs*sqrt(P_dyn + 1.2304183)
+ + (0.018220784*DST - 0.59550816)**2]
+LaTeX: \mathtt{\text{- 0.0010751275 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.2304183 \textbackslashright)\} + \textbackslashleft(0.018220784 DST - 0.59550816\textbackslashright)\textasciicircum\{2\}}}
+Raw: g = (#2 * sqrt(#3 + 1.2304183)) * -0.0010751275; d = square((#1 * -0.018220784) + 0.59550816)

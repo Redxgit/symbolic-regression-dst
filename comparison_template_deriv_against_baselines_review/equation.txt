@@ -1,0 +1,2 @@
+Equation: g = (#2 * -0.0010713526) * sqrt(#1 + 1.32442); d = square((#1 * 0.01838707) - 0.5912093)
+LaTeX: \mathtt{\text{- 0.0010713526 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.32442 \textbackslashright)\} + \textbackslashleft(0.01838707 DST - 0.5912093\textbackslashright)\textasciicircum\{2\}}}

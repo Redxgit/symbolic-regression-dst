@@ -1,0 +1,3 @@
+Equation: dDST/dt = (VBs*sqrt(P_dyn + 1.1150439) - (0.59780794*DST - 15.503676)**2)/(DST - 836.2796)
+LaTeX: \mathtt{\text{\textbackslashfrac\{VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.1150439 \textbackslashright)\} - \textbackslashleft(0.59780794 DST - 15.503676\textbackslashright)\textasciicircum\{2\}\}\{DST - 836.2796\}}}
+Raw: ((VBs * sqrt(P_dyn + 1.1150439)) - square((DST * -0.59780794) - -15.503676)) / (DST + -836.2796)

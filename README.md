@@ -1,6 +1,6 @@
 # Symbolic Regression for the Terrestrial Ring Current
 
-This repository contains the code accompanying the paper: **"The terrestrial ring current: solar wind drivers and decay."** It uses Symbolic Regression (SR) via the `PySR` library to discover analytical expressions for the evolution of the $Dst$ index based on solar wind and interplanetary magnetic field drivers.
+This repository contains the code accompanying the paper: **"Physically Meaningful Modeling of $Dst$ Evolution From Symbolic Regression."** It uses Symbolic Regression (SR) via the `PySR` library to discover analytical expressions for the evolution of the $Dst$ index based on solar wind and interplanetary magnetic field drivers.
 
 ---
 
