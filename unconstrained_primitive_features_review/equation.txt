@@ -12,3 +12,9 @@ Equation: ((DST - Np) * -0.04895255) + (Bzsouth * ((((DST * 2.4618247) + Vp) + (
 LaTeX: \mathtt{\text{- Bzsouth \textbackslashleft(0.0025749283 Bzsouth Np + 0.00633902208966901 DST + 0.0025749283 Vp\textbackslashright) - 0.04895255 DST + 0.04895255 Np}}
 Equation: ((DST - Np) * -0.04895255) + (Bzsouth * ((((DST * 2.4618247) + Vp) + (Bzsouth * Np)) * -0.0025749283))
 LaTeX: \mathtt{\text{- Bzsouth \textbackslashleft(0.0025749283 Bzsouth Np + 0.00633902208966901 DST + 0.0025749283 Vp\textbackslashright) - 0.04895255 DST + 0.04895255 Np}}
+Equation: ((DST - Np) * -0.04895255) + (Bzsouth * ((((DST * 2.4618247) + Vp) + (Bzsouth * Np)) * -0.0025749283))
+LaTeX: \mathtt{\text{- Bzsouth \textbackslashleft(0.0025749283 Bzsouth Np + 0.00633902208966901 DST + 0.0025749283 Vp\textbackslashright) - 0.04895255 DST + 0.04895255 Np}}
+Equation: ((DST - Np) * -0.04895255) + (Bzsouth * ((((DST * 2.4618247) + Vp) + (Bzsouth * Np)) * -0.0025749283))
+LaTeX: \mathtt{\text{- Bzsouth \textbackslashleft(0.0025749283 Bzsouth Np + 0.00633902208966901 DST + 0.0025749283 Vp\textbackslashright) - 0.04895255 DST + 0.04895255 Np}}
+Equation: ((DST - Np) * -0.04895255) + (Bzsouth * ((((DST * 2.4618247) + Vp) + (Bzsouth * Np)) * -0.0025749283))
+LaTeX: \mathtt{\text{- Bzsouth \textbackslashleft(0.0025749283 Bzsouth Np + 0.00633902208966901 DST + 0.0025749283 Vp\textbackslashright) - 0.04895255 DST + 0.04895255 Np}}
