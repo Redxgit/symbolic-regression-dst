@@ -8,7 +8,6 @@ from datetime import datetime
 from pysr import PySRRegressor, TemplateExpressionSpec
 import sympy.parsing.sympy_parser as spp
 
-# Internal module imports (assumed to be in the same directory)
 import utils
 import storm_dates
 import pre_processing
@@ -32,7 +31,6 @@ def get_args():
         description="Symbolic Regression for Dst Index Prediction"
     )
 
-    # Core logic toggles
     parser.add_argument(
         "--mode",
         type=str,
@@ -70,7 +68,7 @@ def get_args():
     return parser.parse_args()
 
 
-def load_and_preprocess(prepared_data = './data/prepared_data.csv', force_reload=False, save_prepared_data=True):
+def load_and_preprocess(prepared_data = './data/prepared_data.csv', force_reload=False, save_prepared_data=True, interpolate_missing = True, use_preliminary = True):
     logging.info("Loading and interpolating data...")
     
     if os.path.exists(prepared_data) and not force_reload:
@@ -87,30 +85,35 @@ def load_and_preprocess(prepared_data = './data/prepared_data.csv', force_reload
     ace_imf.columns = ['Bmag', 'Bx', 'By', 'Bz']
     ace_imf = ace_imf[~ace_imf.index.duplicated(keep='first')]
     
-    ace_imf_provisional = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_imf_provisional_1h_'], print_info = True, return_separated = False)
-    ace_imf_provisional = pre_processing.preprocess_ace_imf_provisional(ace_imf_provisional, resample=False)
-    ace_imf_provisional.columns = ['Bmag', 'Bx', 'By', 'Bz']
-    ace_imf_provisional = ace_imf_provisional[~ace_imf_provisional.index.duplicated(keep='first')]
+    if use_preliminary:
+    
+        ace_imf_provisional = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_imf_provisional_1h_'], print_info = True, return_separated = False)
+        ace_imf_provisional = pre_processing.preprocess_ace_imf_provisional(ace_imf_provisional, resample=False)
+        ace_imf_provisional.columns = ['Bmag', 'Bx', 'By', 'Bz']
+        ace_imf_provisional = ace_imf_provisional[~ace_imf_provisional.index.duplicated(keep='first')]
 
-    ace_imf = ace_imf.combine_first(ace_imf_provisional)
+        ace_imf = ace_imf.combine_first(ace_imf_provisional)
 
     ace_swepam = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_swepam_1h_'], print_info = True, return_separated = False)                          
     ace_swepam.columns = ['Vx', 'Vy', 'Vz', 'Vp', 'Np', 'T']
     ace_swepam = ace_swepam.loc[:, ('Vp', 'Np', 'T')]
     ace_swepam = ace_swepam[~ace_swepam.index.duplicated(keep='first')]
     
-    ace_swepam_provisional = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_swepam_provisional_1h_'], print_info = True, return_separated = False)                          
-    ace_swepam_provisional = pre_processing.preprocess_ace_swepam_provisional(ace_swepam_provisional, resample=False)
-    ace_swepam_provisional.columns = ['Np', 'Vp', 'T']
-    ace_swepam_provisional = ace_swepam_provisional[~ace_swepam_provisional.index.duplicated(keep='first')]
+    if use_preliminary:
+    
+        ace_swepam_provisional = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_swepam_provisional_1h_'], print_info = True, return_separated = False)                          
+        ace_swepam_provisional = pre_processing.preprocess_ace_swepam_provisional(ace_swepam_provisional, resample=False)
+        ace_swepam_provisional.columns = ['Np', 'Vp', 'T']
+        ace_swepam_provisional = ace_swepam_provisional[~ace_swepam_provisional.index.duplicated(keep='first')]
 
-    ace_swepam = ace_swepam.combine_first(ace_swepam_provisional)
+        ace_swepam = ace_swepam.combine_first(ace_swepam_provisional)
 
     ace_data = ace_imf.join(ace_swepam)
 
     all_data = ace_data.join(dst_kyoto['DST'])
 
-    all_data = all_data.interpolate()
+    if interpolate_missing:
+        all_data = all_data.interpolate()
     
     if save_prepared_data:
         logging.info(f"Saving preprocessed data to {prepared_data}")
@@ -221,7 +224,6 @@ def main():
     raw_data = load_and_preprocess(force_reload=args.force_reload)
     data = compute_features(raw_data)
 
-    # Storm extraction (Combine train and validation as per your scripts)
     train_data_list, train_labels_list = [], []
     for storm_set in [storm_dates.TRAIN_STORMS_SYMBOLIC_REGRESSION]:
         for start, end, idx in storm_set:
@@ -260,7 +262,7 @@ def main():
             batch_size=args.batch_size,
             batching=True,
             timeout_in_seconds=args.timeout,
-            constraints={"d": 9} if args.mode == "template" else None,
+            constraints={"d": 14} if args.mode == "template" else None,
             progress=True,
         )
 
@@ -274,7 +276,6 @@ def main():
         eq_df["simulation"] = sim
         eq_df = eq_df[eq_df["complexity"] > 5]  # Filter noise
 
-        # Persistent storage across simulations
         if os.path.exists(results_file):
             global_res = pd.read_csv(results_file)
             global_res = pd.concat([global_res, eq_df]).drop_duplicates(
