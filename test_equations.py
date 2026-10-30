@@ -40,12 +40,7 @@ def get_args():
     parser.add_argument(
         "--mode", type=str, choices=["template", "default"], default="template"
     )
-    parser.add_argument(
-        "--data_path",
-        type=str,
-        default="./data/",
-        help="Path to the solar wind and Dst data.",
-    )
+    
     return parser.parse_args()
 
 
@@ -64,10 +59,10 @@ def main():
 
     # Prepare columns for metrics
     metrics_to_eval = ["RMSE", "MAE", "R2", "BFE"]
-    
+
     for m in metrics_to_eval:
-            eq_df[f"TRAIN_{m}"] = np.nan
-    
+        eq_df[f"TRAIN_{m}"] = np.nan
+
     for m in metrics_to_eval:
         eq_df[f"TEST_{m}"] = np.nan
 
@@ -80,8 +75,7 @@ def main():
     for idx, row in tqdm(
         eq_df.iterrows(), total=len(eq_df), desc="Evaluating Equations"
     ):
-        # try:
-        # Initialize the Unified Model
+        # Initialize the equation model
         # We use 'julia_expression' if template, or 'equation' if default
         raw_eq = row["julia_expression"] if args.mode == "template" else row["equation"]
 
@@ -97,37 +91,50 @@ def main():
 
         # Evaluate across all test storms
         for start, end, storm_id in test_storms:
-            storm_df = data[start:end].copy()
-            if storm_df.empty or storm_df["DST"].isna().any():
-                continue
+            start = pd.Timestamp(start)
+            end = pd.Timestamp(end)
+
+            integration_index = pd.date_range(
+                start - pd.Timedelta(hours=1),
+                end + pd.Timedelta(hours=1),
+                freq="h",
+            )
+
+            storm_df = data.loc[integration_index[0]:integration_index[-1]].copy()
 
             # Run iterative integration (Euler)
 
             try:
                 preds_func = simulate_storm(model, storm_df)
-
+                comparison = pd.concat(
+                    [
+                        storm_df["DST"].rename("observed"),
+                        preds_func["DST_pred"].rename("predicted"),
+                    ],
+                    axis=1,
+                ).loc[start:end]
                 # Store results for this storm
                 storm_results.append(
                     {
                         "rmse": root_mean_squared_error(
-                            storm_df["DST"].iloc[1:].values,
-                            preds_func["DST_pred"].values[:-1],
+                            comparison["observed"].values,
+                            comparison["predicted"].values,
                         ),
                         "mae": mean_absolute_error(
-                            storm_df["DST"].iloc[1:].values,
-                            preds_func["DST_pred"].values[:-1],
+                            comparison["observed"].values,
+                            comparison["predicted"].values,
                         ),
                         "r2": r2_score(
-                            storm_df["DST"].iloc[1:].values,
-                            preds_func["DST_pred"].values[:-1],
+                            comparison["observed"].values,
+                            comparison["predicted"].values,
                         ),
                         "cc": pearsonr(
-                            storm_df["DST"].iloc[1:].values,
-                            preds_func["DST_pred"].values[:-1],
+                            comparison["observed"].values,
+                            comparison["predicted"].values,
                         )[0],
                         "bfe": metrics.calculate_BFE(
-                            storm_df["DST"].iloc[1:].values,
-                            preds_func["DST_pred"].values[:-1],
+                            comparison["observed"].values,
+                            comparison["predicted"].values,
                         ),
                     }
                 )
@@ -162,15 +169,12 @@ def main():
         logging.info(
             f"Metrics for Equation {idx}: RMSE={eq_df.at[idx, 'TEST_RMSE']}, MAE={eq_df.at[idx, 'TEST_MAE']}, R2={eq_df.at[idx, 'TEST_R2']}, CC={eq_df.at[idx, 'TEST_CC']}, BFE={eq_df.at[idx, 'TEST_BFE']}"
         )
-        # except Exception as e:
-        #    logging.debug(f"Error evaluating row {idx}: {e}")
-        #    incorrect_count += 1
 
     # 5. Finalize and Save
     logging.info(
         f"Evaluation complete. Errors: {incorrect_count}, Correct: {correct_count}"
     )
-    
+
     # 3. Evaluation Loop
     incorrect_count = 0
     correct_count = 0
@@ -180,8 +184,7 @@ def main():
     for idx, row in tqdm(
         eq_df.iterrows(), total=len(eq_df), desc="Evaluating Equations"
     ):
-        # try:
-        # Initialize the Unified Model
+        # Initialize the equation model
         # We use 'julia_expression' if template, or 'equation' if default
         raw_eq = row["julia_expression"] if args.mode == "template" else row["equation"]
 
@@ -197,37 +200,52 @@ def main():
 
         # Evaluate across all test storms
         for start, end, storm_id in train_storms:
-            storm_df = data[start:end].copy()
-            if storm_df.empty or storm_df["DST"].isna().any():
-                continue
+            start = pd.Timestamp(start)
+            end = pd.Timestamp(end)
+
+            integration_index = pd.date_range(
+                start - pd.Timedelta(hours=1),
+                end + pd.Timedelta(hours=1),
+                freq="h",
+            )
+            scoring_index = pd.date_range(start, end, freq="h")
+
+            storm_df = data.loc[integration_index[0]:integration_index[-1]].copy()
 
             # Run iterative integration (Euler)
 
             try:
                 preds_func = simulate_storm(model, storm_df)
+                comparison = pd.concat(
+                    [
+                        storm_df["DST"].rename("observed"),
+                        preds_func["DST_pred"].rename("predicted"),
+                    ],
+                    axis=1,
+                ).loc[start:end]
 
                 # Store results for this storm
                 storm_results.append(
                     {
                         "rmse": root_mean_squared_error(
-                            storm_df["DST"].iloc[1:].values,
-                            preds_func["DST_pred"].values[:-1],
+                            comparison["observed"].values,
+                            comparison["predicted"].values,
                         ),
                         "mae": mean_absolute_error(
-                            storm_df["DST"].iloc[1:].values,
-                            preds_func["DST_pred"].values[:-1],
+                            comparison["observed"].values,
+                            comparison["predicted"].values,
                         ),
                         "r2": r2_score(
-                            storm_df["DST"].iloc[1:].values,
-                            preds_func["DST_pred"].values[:-1],
+                            comparison["observed"].values,
+                            comparison["predicted"].values,
                         ),
                         "cc": pearsonr(
-                            storm_df["DST"].iloc[1:].values,
-                            preds_func["DST_pred"].values[:-1],
+                            comparison["observed"].values,
+                            comparison["predicted"].values,
                         )[0],
                         "bfe": metrics.calculate_BFE(
-                            storm_df["DST"].iloc[1:].values,
-                            preds_func["DST_pred"].values[:-1],
+                            comparison["observed"].values,
+                            comparison["predicted"].values,
                         ),
                     }
                 )
@@ -262,16 +280,12 @@ def main():
         logging.info(
             f"Metrics for Equation {idx}: RMSE={eq_df.at[idx, 'TRAIN_RMSE']}, MAE={eq_df.at[idx, 'TRAIN_MAE']}, R2={eq_df.at[idx, 'TRAIN_R2']}, CC={eq_df.at[idx, 'TRAIN_CC']}, BFE={eq_df.at[idx, 'TRAIN_BFE']}"
         )
-        # except Exception as e:
-        #    logging.debug(f"Error evaluating row {idx}: {e}")
-        #    incorrect_count += 1
 
     # 5. Finalize and Save
     logging.info(
         f"Evaluation complete. Errors: {incorrect_count}, Correct: {correct_count}"
     )
-    
-    
+
     eq_df = eq_df.sort_values(by="TEST_RMSE", ascending=True)
     eq_df.to_csv(args.equations_out, index=False)
     logging.info(f"Results saved to {args.equations_out}")

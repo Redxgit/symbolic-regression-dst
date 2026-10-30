@@ -2211,7 +2211,7 @@ wheels = [
 ]
 
 [[package]]
-name = "symbolic-regression-ldi"
+name = "symbolic-regression-dst"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

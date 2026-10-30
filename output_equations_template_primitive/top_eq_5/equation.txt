@@ -1,4 +1,0 @@
-Equation: dDST/dt = [-0.00199224768611389*(Bzsouth + 2.152752)*(Bzsouth*(Np - 4.7333016) + Vp)
- + (0.015329162*DST - 1.4046433)**2]
-LaTeX: \mathtt{\text{- 0.00199224768611389 \textbackslashleft(Bzsouth + 2.152752\textbackslashright) \textbackslashleft(Bzsouth \textbackslashleft(Np - 4.7333016\textbackslashright) + Vp\textbackslashright) + \textbackslashleft(0.015329162 DST - 1.4046433\textbackslashright)\textasciicircum\{2\} with features ['Vp', 'Np', 'Bzsouth', 'Bmag', 'DST']}}
-Raw: g = (#3 - -2.152752) * ((((4.7333016 - #2) * #3) - #1) / 501.94562); d = square(1.4046433 - (#1 * 0.015329162))

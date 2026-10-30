@@ -18,7 +18,8 @@ def numpy_safe_sqrt(x):
     return np.sqrt(np.maximum(0, np.asarray(x)))
 
 
-ALL_SYMBOLS = sp.symbols("Vp Np Bzsouth Bmag By DST P_dyn VBs epsilon DST")
+ALL_SYMBOLS = sp.symbols("Bx, By, Bz, Bmag, Vp, Np, T, DST, B_T, B, clock_angle, sin_th2, Bzsouth, VBs, E_Field, E_Field_rect, epsilon, P_dyn_nPa, P_dyn, P_dyn_eVcm3")
+
 SYMBOLS_DICT = {s.name: s for s in ALL_SYMBOLS}
 
 # Global dictionary for SymPy parsing
@@ -53,7 +54,7 @@ class EquationModel:
         feature_names: List of SW features (e.g. ['P_dyn', 'VBs'])
         is_template: Boolean indicating if the equation is a template (with #1, #2, etc.) or a direct equation with feature names
         """
-        
+
         self.is_template = is_template
         self.equation_str = equation_str
         self.feature_names = feature_names
@@ -86,8 +87,12 @@ class EquationModel:
             for key, val in d_variable_names.items():
                 d_equation = d_equation.replace(key, val)
 
-            self.g_equation_sympy, self.g_numeric_func = self._parse_equation(g_equation)
-            self.d_equation_sympy, self.d_numeric_func = self._parse_equation(d_equation)
+            self.g_equation_sympy, self.g_numeric_func = self._parse_equation(
+                g_equation
+            )
+            self.d_equation_sympy, self.d_numeric_func = self._parse_equation(
+                d_equation
+            )
         else:
             self.feature_names = feature_names
             self.target_name = "DST"
@@ -97,11 +102,11 @@ class EquationModel:
                 else feature_names
             )
 
-            self.expr, self.func = self._parse_equation(equation_str)  
+            self.expr, self.func = self._parse_equation(equation_str)
 
     def _parse_equation(self, raw_str):
         expr = sp.sympify(raw_str, locals=LOCALS_DICT)
-        
+
         return expr, sp.lambdify(
             [SYMBOLS_DICT[v] for v in self.all_vars],
             expr,
@@ -111,7 +116,7 @@ class EquationModel:
     def predict(self, data_dict):
         """Expects a dict of arrays: {'Vp': [...], 'DST': [...]}"""
         args = [data_dict[v] for v in self.all_vars]
-        
+
         if self.is_template:
             g_results = self.g_numeric_func(*args)
             d_results = self.d_numeric_func(*args)
@@ -119,11 +124,11 @@ class EquationModel:
             return g_results + d_results
         else:
             return self.func(*args)
-        
+
     def predict_components(self, data_dict):
         """Expects a dict of arrays: {'Vp': [...], 'DST': [...]}"""
         args = [data_dict[v] for v in self.all_vars]
-        
+
         if self.is_template:
             g_results = self.g_numeric_func(*args)
             d_results = self.d_numeric_func(*args)
@@ -142,7 +147,6 @@ class EquationModel:
         else:
             return self.func(*data_list)
 
-        
     def __str__(self):
         if self.is_template:
             return f"TemplateEquationModel(equation={latex(sp.simplify(self.g_equation_sympy))}+{latex(sp.simplify(self.d_equation_sympy))}, features={self.feature_names})"
@@ -155,79 +159,79 @@ class EquationModel:
                 latex(sp.simplify(self.g_equation_sympy))
                 + " + "
                 + latex(sp.simplify(self.d_equation_sympy))
-                #+ f" with features {self.feature_names}"
+                # + f" with features {self.feature_names}"
             )
         else:
             return latex(sp.simplify(self.expr))
-        
+
     def sympy_format(self):
         if self.is_template:
             return f"dDST/dt = [{sp.simplify(self.g_equation_sympy)}\n + {sp.simplify(self.d_equation_sympy)}]"
         else:
             return f"dDST/dt = {sp.simplify(self.expr)}"
-        
-        
+
 
 def simulate_storm(model, storm_df):
-    """Reconstructs DST profile using Euler integration."""
+    """
+    Reconstruct DST using Euler integration.
+
+    Assumes one-hour sampling. Solar-wind inputs are held constant
+    within each interval.
+
+    For template models, injection_component and decay_component
+    are the integrated contributions over the interval. Their sum
+    equals dDST, up to floating-point rounding.
+    """
     initial_idx = storm_df.index[0]
-    DST_current = storm_df.loc[initial_idx, "DST"]  # Start with actual DST
-    
-    predictions = []
-    
-    # Record initial state prediction (t=0)
+    DST_current = storm_df.loc[initial_idx, "DST"]
+
     initial_pred = {
         "datetime": initial_idx,
         "DST_pred": DST_current,
-        "dDST": 0.0
+        "dDST": 0.0,
     }
-    
-    # Keep schema consistent for template models at t=0
+
     if model.is_template:
         initial_pred["injection_component"] = 0.0
         initial_pred["decay_component"] = 0.0
-        
-    predictions.append(initial_pred)
 
-    # Loop from 0 to N-2 safely
+    predictions = [initial_pred]
+    h = 1.0  # Integration step [hours]
+
     for hour in range(len(storm_df) - 1):
-
-        # Prepare inputs for this specific time step
         input_step = storm_df.iloc[hour].to_dict()
-        input_step["DST"] = DST_current  # Crucial: Use predicted DST, not real DST
+
+        def evaluate(dst):
+            # Always use the predicted stage state, not observed DST.
+            stage_input = dict(input_step)
+            stage_input["DST"] = dst
+
+            if model.is_template:
+                return model.predict_components(stage_input)
+
+            return model.predict(stage_input), None, None
+
+        k1, g1, d1 = evaluate(DST_current)
+        ddst = h * k1
 
         if model.is_template:
-            # Get dDST/dt
-            ddst_dt, injection_component, decay_component = model.predict_components(input_step)
+            injection_component = h * g1
+            decay_component = h * d1
 
-            # Integrate (assuming 1-hour resolution)
-            DST_pred = DST_current + ddst_dt
+        DST_pred = DST_current + ddst
 
-            predictions.append(
-                {
-                    "datetime": storm_df.index[hour + 1],
-                    "DST_pred": DST_pred,
-                    "dDST": ddst_dt,
-                    "injection_component": injection_component,
-                    "decay_component": decay_component,
-                }
-            )
-        else:
-            # Get dDST/dt
-            ddst_dt = model.predict(input_step)
+        prediction = {
+            "datetime": storm_df.index[hour + 1],
+            "DST_pred": DST_pred,
+            "dDST": ddst,
+        }
 
-            # Integrate (assuming 1-hour resolution)
-            DST_pred = DST_current + ddst_dt
+        if model.is_template:
+            prediction["injection_component"] = injection_component
+            prediction["decay_component"] = decay_component
 
-            predictions.append(
-                {
-                    "datetime": storm_df.index[hour + 1],
-                    "DST_pred": DST_pred,
-                    "dDST": ddst_dt,
-                }
-            )
-
-        DST_current = DST_pred  # Update for next iteration
+        predictions.append(prediction)
+        DST_current = DST_pred
 
     return pd.DataFrame(predictions).set_index("datetime")
 
@@ -249,18 +253,20 @@ if __name__ == "__main__":
             "By": [1.0, 2.0, 3.0],
             "DST": [0.1, 0.2, 0.3],
         },
-        index=pd.date_range(start="2020-01-01", periods=3, freq="H"),
+        index=pd.date_range(start="2020-01-01", periods=3, freq="h"),
     )
-
     predictions = simulate_storm(model, storm_data)
     print(predictions)
-    
-    g_results = model.g_numeric_func(*[storm_data[feat].values for feat in feature_names + ["DST"]])
-    d_results = model.d_numeric_func(*[storm_data[feat].values for feat in feature_names + ["DST"]])
 
-    print(g_results + d_results)    
-    
-    
+    g_results = model.g_numeric_func(
+        *[storm_data[feat].values for feat in feature_names + ["DST"]]
+    )
+    d_results = model.d_numeric_func(
+        *[storm_data[feat].values for feat in feature_names + ["DST"]]
+    )
+
+    print(g_results + d_results)
+
     sample_eq = "((-0.06690711 * DST) + -2.5263886) + ((((((Bzsouth + Bzsouth) + DST) * -0.008291428) - sqrt(Np)) + -0.60579747) * (((((Vp - Bmag) - 159.63905) * Bzsouth) * 0.0013296593) - 0.84098405))"
     feature_names = [
         "Vp",
@@ -281,7 +287,7 @@ if __name__ == "__main__":
             "Bmag": [1.0, 2.0, 3.0],
             "DST": [0.1, 0.2, 0.3],
         },
-        index=pd.date_range(start="2020-01-01", periods=3, freq="H"),
+        index=pd.date_range(start="2020-01-01", periods=3, freq="h"),
     )
 
     predictions = simulate_storm(model, storm_data)

@@ -1,2 +1,2 @@
-Equation: g = #2 * (sqrt(#1 - -1.2173425) * -0.0010723427); d = square((#1 * -0.018120795) + 0.5971914)
-LaTeX: \mathtt{\text{- 0.0010723427 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.2173425 \textbackslashright)\} + \textbackslashleft(0.018120795 DST - 0.5971914\textbackslashright)\textasciicircum\{2\}}}
+Equation: g = (#2 * -0.0010713526) * sqrt(#1 + 1.32442); d = square((#1 * 0.01838707) - 0.5912093)
+LaTeX: \mathtt{\text{- 0.0010713526 VBs \textbackslashsqrt\{\textbackslashleft(P\_\{dyn\} + 1.32442 \textbackslashright)\} + \textbackslashleft(0.01838707 DST - 0.5912093\textbackslashright)\textasciicircum\{2\}}}

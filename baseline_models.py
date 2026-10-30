@@ -81,7 +81,7 @@ def burton_prediction(df):
     """
     Correct Euler integration of the Burton (1975) Dst model.
     Uses the nPa pressure convention (b = 15.80, c = 20.0).
-    Integrates Dst* directly and converts to ground Dst using t+1 pressure.
+    Integrates Dst* directly and converts to ground Dst using t pressure.
     """
     # Burton constants converted for nPa
     b = 15.80
@@ -103,7 +103,7 @@ def burton_prediction(df):
         current_data = df.iloc[i]
         
         # Injection Q (F(E) in Burton 1975)
-        e_field = current_data["E_Field"]
+        e_field = current_data["E_Field_rect"]
         if e_field >= 0.5:
             q = -5.4 * (e_field - 0.5)
         else:
@@ -113,7 +113,7 @@ def burton_prediction(df):
         d_dst_star_dt = q - (a * dst_star_current)
         dst_star_current += d_dst_star_dt
         
-        # 4. Convert to ground Dst using pressure at t+1
+        # 4. Convert to ground Dst using pressure at t
         current_p = current_data["P_dyn_nPa"]
         dst_pred_next = dst_star_current + b * np.sqrt(current_p) - c
         
@@ -141,7 +141,7 @@ def burton_prediction_pennati(df):
         if hour >= len(df):
             break
 
-        # Get CURRENT solar wind parameters (not initial)
+        # Get CURRENT solar wind parameters 
         current_data = df.iloc[hour]
         if current_data[f"E_Field"] >= 0.5:
             e_field_contrib = -5.4 * (current_data[f"E_Field"] - 0.5)
@@ -169,7 +169,7 @@ def obm_prediction(df):
     """
     Correct Euler integration of the O'Brien & McPherron (2000) Dst model.
     Uses continuous tau and exact OBM published constants.
-    Integrates Dst* directly and converts to ground Dst using t+1 pressure.
+    Integrates Dst* directly and converts to ground Dst using t pressure.
     """
     b = 7.26
     c = 11.0
@@ -193,10 +193,9 @@ def obm_prediction(df):
     # 2. Loop from 0 to N-2
     for i in range(len(df) - 1):
         current_data = df.iloc[i]
-        next_data = df.iloc[i + 1]
 
-        # Rectified VBs (E_Field is in mV/m in your pipeline)
-        e_field = max(0.0, current_data["E_Field"])
+        # Rectified VBs
+        e_field = current_data["E_Field_rect"]
 
         # Injection Q
         if e_field >= 0.49:
@@ -270,13 +269,15 @@ def obm_prediction_pennati(df):
 # --- 2. METRIC HELPERS ---
 
 
-def get_all_metrics(y_true, y_pred):
+def get_all_metrics(y_true, y_pred, get_cc = True):
     rmse = root_mean_squared_error(y_true, y_pred)
     mae = mean_absolute_error(y_true, y_pred)
     r2 = r2_score(y_true, y_pred)
     cc, _ = pearsonr(y_true, y_pred)
     bfe = metrics.calculate_BFE(y_true, y_pred)
-    return rmse, mae, r2, cc, bfe
+    if get_cc:
+        return rmse, mae, r2, cc, bfe
+    return rmse, mae, r2, bfe
 
 def get_all_metrics_dict(y_true, y_pred):
     rmse = root_mean_squared_error(y_true, y_pred)

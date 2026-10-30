@@ -515,11 +515,9 @@ def fill_missing_values(df, method="ffill"):
     imputed dataframe
     """
     if method == "ffill":
-        # df = df.fillna(method=method)
         df = df.ffill()
         return df
     elif method == "bfill":
-        # df = df.fillna(method=method)
         df = df.bfill()
         return df
     elif method == "interpolate":

@@ -245,7 +245,7 @@ def plot_evaluation_bfe(
 
     bins = np.arange(
         min_index - BINWIDTH, max_index + BINWIDTH, BINWIDTH
-    )  # You can adjust the bin size and range as needed
+    )
 
     # Cut SYM_H into bins and calculate mean diff_abs within each bin
     storm_plot["index_bins"] = pd.cut(

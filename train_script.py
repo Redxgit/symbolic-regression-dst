@@ -43,7 +43,7 @@ def get_args():
         type=str,
         default="Bzsouth,Bmag,By,Vp,Np,DST",
         help="Comma-separated list of solar wind features to use.",
-    )    
+    )
 
     # Simulation hyperparameters
     parser.add_argument("--sims", type=int, default=100, help="Number of simulations.")
@@ -57,7 +57,7 @@ def get_args():
         "--force_reload",
         action="store_true",
         help="Force reloading and preprocessing of data.",
-        default=False
+        default=False,
     )
 
     # Output
@@ -68,57 +68,93 @@ def get_args():
     return parser.parse_args()
 
 
-def load_and_preprocess(prepared_data = './data/prepared_data.csv', force_reload=False, save_prepared_data=True, interpolate_missing = True, use_preliminary = True):
+def load_and_preprocess(
+    prepared_data="./data/prepared_data.csv",
+    force_reload=False,
+    save_prepared_data=True,
+    interpolate_missing=True,
+    use_preliminary=True,
+):
     logging.info("Loading and interpolating data...")
-    
+
     if os.path.exists(prepared_data) and not force_reload:
         logging.info(f"Loading preprocessed data from {prepared_data}")
         all_data = pd.read_csv(prepared_data, index_col=0, parse_dates=True)
         return all_data
 
-    ace_columns = ['Bmag', 'Bx', 'By', 'Bz','Vp', 'Np', 'T']
+    ace_columns = ["Bmag", "Bx", "By", "Bz", "Vp", "Np", "T"]
 
-    dst_kyoto = utils.read_iaga_file('./data/dst-kyoto.txt', columns = ["DATE", "TIME", "DOY", "DST"])
-    dst_kyoto = dst_kyoto[~dst_kyoto.index.duplicated(keep='first')]
+    dst_kyoto = utils.read_iaga_file(
+        "./data/dst-kyoto.txt", columns=["DATE", "TIME", "DOY", "DST"]
+    )
+    dst_kyoto = dst_kyoto[~dst_kyoto.index.duplicated(keep="first")]
 
-    ace_imf = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_imf_1h_'], print_info = True, return_separated = False)
-    ace_imf.columns = ['Bmag', 'Bx', 'By', 'Bz']
-    ace_imf = ace_imf[~ace_imf.index.duplicated(keep='first')]
-    
+    ace_imf = utils.read_data(
+        "./data/all_timeline",
+        pattern_to_read=["csv", "ace_imf_1h_"],
+        print_info=True,
+        return_separated=False,
+    )
+    ace_imf.columns = ["Bmag", "Bx", "By", "Bz"]
+    ace_imf = ace_imf[~ace_imf.index.duplicated(keep="first")]
+
     if use_preliminary:
-    
-        ace_imf_provisional = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_imf_provisional_1h_'], print_info = True, return_separated = False)
-        ace_imf_provisional = pre_processing.preprocess_ace_imf_provisional(ace_imf_provisional, resample=False)
-        ace_imf_provisional.columns = ['Bmag', 'Bx', 'By', 'Bz']
-        ace_imf_provisional = ace_imf_provisional[~ace_imf_provisional.index.duplicated(keep='first')]
+
+        ace_imf_provisional = utils.read_data(
+            "./data/all_timeline",
+            pattern_to_read=["csv", "ace_imf_provisional_1h_"],
+            print_info=True,
+            return_separated=False,
+        )
+        ace_imf_provisional = pre_processing.preprocess_ace_imf_provisional(
+            ace_imf_provisional, resample=False
+        )
+        ace_imf_provisional.columns = ["Bmag", "Bx", "By", "Bz"]
+        ace_imf_provisional = ace_imf_provisional[
+            ~ace_imf_provisional.index.duplicated(keep="first")
+        ]
 
         ace_imf = ace_imf.combine_first(ace_imf_provisional)
 
-    ace_swepam = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_swepam_1h_'], print_info = True, return_separated = False)                          
-    ace_swepam.columns = ['Vx', 'Vy', 'Vz', 'Vp', 'Np', 'T']
-    ace_swepam = ace_swepam.loc[:, ('Vp', 'Np', 'T')]
-    ace_swepam = ace_swepam[~ace_swepam.index.duplicated(keep='first')]
-    
+    ace_swepam = utils.read_data(
+        "./data/all_timeline",
+        pattern_to_read=["csv", "ace_swepam_1h_"],
+        print_info=True,
+        return_separated=False,
+    )
+    ace_swepam.columns = ["Vx", "Vy", "Vz", "Vp", "Np", "T"]
+    ace_swepam = ace_swepam.loc[:, ("Vp", "Np", "T")]
+    ace_swepam = ace_swepam[~ace_swepam.index.duplicated(keep="first")]
+
     if use_preliminary:
-    
-        ace_swepam_provisional = utils.read_data('./data/all_timeline', pattern_to_read=['csv', 'ace_swepam_provisional_1h_'], print_info = True, return_separated = False)                          
-        ace_swepam_provisional = pre_processing.preprocess_ace_swepam_provisional(ace_swepam_provisional, resample=False)
-        ace_swepam_provisional.columns = ['Np', 'Vp', 'T']
-        ace_swepam_provisional = ace_swepam_provisional[~ace_swepam_provisional.index.duplicated(keep='first')]
+
+        ace_swepam_provisional = utils.read_data(
+            "./data/all_timeline",
+            pattern_to_read=["csv", "ace_swepam_provisional_1h_"],
+            print_info=True,
+            return_separated=False,
+        )
+        ace_swepam_provisional = pre_processing.preprocess_ace_swepam_provisional(
+            ace_swepam_provisional, resample=False
+        )
+        ace_swepam_provisional.columns = ["Np", "Vp", "T"]
+        ace_swepam_provisional = ace_swepam_provisional[
+            ~ace_swepam_provisional.index.duplicated(keep="first")
+        ]
 
         ace_swepam = ace_swepam.combine_first(ace_swepam_provisional)
 
     ace_data = ace_imf.join(ace_swepam)
 
-    all_data = ace_data.join(dst_kyoto['DST'])
+    all_data = ace_data.join(dst_kyoto["DST"])
 
     if interpolate_missing:
         all_data = all_data.interpolate()
-    
+
     if save_prepared_data:
         logging.info(f"Saving preprocessed data to {prepared_data}")
         all_data.to_csv(prepared_data)
-    
+
     return all_data
 
 
@@ -127,73 +163,39 @@ def compute_features(dfx):
     df = dfx.copy()
 
     # Magnetic field magnitude
-    df["B_T"] = np.sqrt(
-        df["By"]**2 +
-        df["Bz"]**2
-    )
+    df["B_T"] = np.sqrt(df["By"] ** 2 + df["Bz"] ** 2)
 
-    df["B"] = np.sqrt(
-        df["Bx"]**2 +
-        df["By"]**2 +
-        df["Bz"]**2
-    )
+    df["B"] = np.sqrt(df["Bx"] ** 2 + df["By"] ** 2 + df["Bz"] ** 2)
 
     # IMF clock angle
-    df["clock_angle"] = np.degrees(
-        np.arctan2(df["By"], df["Bz"])
-    )
+    df["clock_angle"] = np.degrees(np.arctan2(df["By"], df["Bz"]))
 
-    df["sin_th2"] = np.sin(
-        np.radians(df["clock_angle"]) / 2
-    )
+    df["sin_th2"] = np.sin(np.radians(df["clock_angle"]) / 2)
 
     # Southward IMF
-    df["Bzsouth"] = np.maximum(
-        0,
-        -df["Bz"]
-    )
+    df["Bzsouth"] = np.maximum(0, -df["Bz"])
 
     # VBs
-    df["VBs"] = (
-        df["Vp"] *
-        df["Bzsouth"]
-    )
+    df["VBs"] = df["Vp"] * df["Bzsouth"]
 
-    # Electric field in mV/m
-    df["E_Field"] = np.maximum(
-        0,
-        -df["Vp"] * df["Bz"] * 1e-3
-    )
+    # Signed and rectified electric fields [mV/m]
+    df["E_Field"] = -df["Vp"] * df["Bz"] * 1e-3
+    df["E_Field_rect"] = np.maximum(0, df["E_Field"])
 
     # Akasofu epsilon
-    df["epsilon"] = (
-        df["Vp"]
-        * df["B"]**2
-        * df["sin_th2"]**4
-    )
+    df["epsilon"] = df["Vp"] * df["B"] ** 2 * df["sin_th2"] ** 4
 
     # Dynamic pressure [nPa]
-    df["P_dyn_nPa"] = (
-        1.6726e-6
-        * df["Np"]
-        * df["Vp"]**2
-    )
+    df["P_dyn_nPa"] = 1.6726e-6 * df["Np"] * df["Vp"] ** 2
 
     # Backward-compatible alias
     df["P_dyn"] = df["P_dyn_nPa"]
 
     # Burton pressure convention [eV/cm^3]
-    df["P_dyn_eVcm3"] = (
-        df["P_dyn_nPa"]
-        * 6241.509
-    )
+    df["P_dyn_eVcm3"] = df["P_dyn_nPa"] * 6241.509
 
     # Target derivative
-    df["dDST_dt"] = (
-        df["DST"]
-        .diff()
-        .shift(-1)
-    )
+    df["dDST_dt"] = df["DST"].diff().shift(-1)
 
     return df
 
@@ -216,7 +218,7 @@ def main():
 
     # Feature selection
     all_cols = args.features.split(",")
-    
+
     if not all_cols:
         raise ValueError("No features specified")
 
@@ -262,7 +264,7 @@ def main():
             batch_size=args.batch_size,
             batching=True,
             timeout_in_seconds=args.timeout,
-            constraints={"d": 14} if args.mode == "template" else None,
+            constraints={"d": 9} if args.mode == "template" else None,
             progress=True,
         )
 

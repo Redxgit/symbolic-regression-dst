@@ -9,7 +9,6 @@ from sympy.printing import latex
 import storm_dates
 import baseline_models
 
-# from evaluation_engine import UnifiedModel, simulate_storm, compute_features
 from evaluation_engine import EquationModel, simulate_storm
 from train_script import load_and_preprocess, compute_features
 
@@ -263,14 +262,14 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     feature_list = args.features.split(",")
 
-    # Load Data (Assuming data logic is in compute_features)
+    # Load prepared observations and compute features
     raw_data = load_and_preprocess()
     data = compute_features(raw_data)
 
     # If raw_eq is provided, evaluate it directly without loading from CSV
     if args.raw_eq:
         model = EquationModel(args.raw_eq, feature_list, is_template=args.mode == "template")
-        test_storms = storm_dates.TEST_STORMS_SR
+        test_storms = storm_dates.TEST_STORMS_SYMBOLIC_REGRESSION
         for sd, ed, storm_id in tqdm(test_storms):
             start = pd.to_datetime(sd)
             end = pd.to_datetime(ed)
@@ -322,7 +321,7 @@ def main():
 
     print(f"Total unique equations to evaluate: {len(equations)}")
 
-    for i, equation in enumerate(equations):
+    for i, equation in enumerate(sorted(equations)):
         eq_folder = os.path.join(args.output_dir, f"top_eq_{i+1}")
         os.makedirs(eq_folder, exist_ok=True)
 
