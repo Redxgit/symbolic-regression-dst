@@ -211,6 +211,17 @@ The [`epsilon_verification/`](epsilon_verification/) directory contains the note
 ## 📝 Citation
 
 If you use this code or the discovered equations, please cite:
-TBD
+```bibtex
+@software{collado_villaverde_2026_23839251,
+  author       = {Collado Villaverde, Armando and Cid, Consuelo},
+  title        = {Redxgit/symbolic-regression-ds},
+  month        = oct,
+  year         = 2026,
+  publisher    = {Zenodo},
+  version      = {v1.0},
+  doi          = {10.5281/zenodo.23839251},
+  url          = {[https://doi.org/10.5281/zenodo.23839251](https://doi.org/10.5281/zenodo.23839251)}
+}
+```
 
 
